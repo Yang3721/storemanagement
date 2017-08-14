@@ -56,8 +56,8 @@
   </nav>
   <div class="container">
   	<div class="input-group">
-       <form action="/return/" class="form-horizontal" method="post">
-           {% csrf_token %}
+       <form action="/return/" class="form-horizontal" method="get">
+           <!--{% csrf_token %}--!>
            {{ head }}
            <input type="text" class="form-control" name="borrow_message" placeholder="请键入您要搜索的单号或借出人">
            <span class="input-group-btn">
@@ -77,9 +77,9 @@
   	</thead>
   	<tbody>
   		<tr>
-		  <td><a href="#" id="example" rel="popover">JCD-12043</a></td>
-		  <td>单号</td>
-  		  <td>01/01/2017</td>
+		  <td><a href="#" id="example" rel="popover">{{ 单号 }}</a></td>
+		  <td>{{ 借出人 }}</td>
+  		  <td>{{ 借出日期 }}</td>
   		</tr>
   	</tbody>
   	</table>

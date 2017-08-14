@@ -1,13 +1,20 @@
-from django.shortcuts import render
-from .models import Staff, all_object,ReturnManagement
-from .forms import UserForm, SearchForm,BorrowForm
-from django.http import HttpResponseRedirect
+from __future__ import unicode_literals
+from .models import Staff, all_object, ReturnManagement
+from .forms import UserForm, SearchForm
+from django.http import HttpResponseRedirect,JsonResponse
 from django.shortcuts import render_to_response
 from django.db.models import Q
-from django.forms.models import model_to_dict
+# from django.core import serializers
+# from django.forms.models import model_to_dict
 
 
 # Create your views here.
+# -*- coding: utf-8 -*-
+
+import json
+from django.shortcuts import render
+
+
 def login(request):
     if request.method == 'POST':
 
@@ -60,12 +67,35 @@ def main(request):
             kw = mf.cleaned_data['keyword']
             materials = all_object.objects.filter(Q(name__icontains=kw) | Q(type__icontains=kw) | Q(modelNum__icontains=kw) | Q(roomNum__icontains=kw) | Q(location__icontains=kw) | Q(department__icontains=kw) | Q(serialNum__icontains=kw) | Q(mountingNum__icontains=kw))
             #materials = 'a'
+            materials = materials.values()
+            #materials = list(materials)
+            #result_dict = model_to_dict(materials)
+            #result_dict = {}
+            #title = ['name', 'type', 'modelNum', 'roomNum', 'state', 'number', 'location', 'department', 'meteringNum', 'useLife', 'serialNum', 'countingUnit', 'coreNum', 'measurement', 'mountingNum', 'threshold', 'remarks']
+            #for i in range(len(materials)):
+                #materials[i] = model_to_dict(materials[i])
             ele = {}
-            ele['head'] = materials
-            if materials:
-                return render(request,'main.html',ele)
+            a = len(materials)
+            i = 0
+            if i < a:
+                ele['库房编号'] = materials[i]['meteringNum']
+                ele['名称'] = materials[i]['name']
+                ele['类型'] = materials[i]['type']
+                ele['型号'] = materials[i]['serialNum']
+                ele['库存状态'] = materials[i]['state']
+                ele['库存数量'] = materials[i]['number']
+                ele['存放地点'] = materials[i]['location']
+                ele['备注'] = materials[i]['remarks']
+                i = i + 1
+                if ele:
+                    return render(request, 'main.html', ele)
+                else:
+                    return render(request, 'main.html',ele)
             else:
-                return render(request,'main.html',{'head':'No result.'})
+                return render(request, 'main.html', ele)
+
+            #materials = serializers.serialize('json', materials)
+
 
         else:
             render(request, 'error.html')
@@ -75,20 +105,33 @@ def main(request):
 
 
 def base_return(request):
-    if request.method == 'POST':
-        flag = request.POST.get('flag')
-        if flag:
-            return render(request,'return.html')
-        bf = BorrowForm(request.POST)
-        if bf.is_valid():
-            bm = bf.cleaned_data['borrow_message']
-            return_list = ReturnManagement.objects.filter(Q(formNum_de__icontains=bm) | Q(operator_re__icontains=bm))
+    #if request.method == 'POST':
+        #flag = request.POST.get('flag')
+        #if flag:
+            #return render(request,'return.html')
+        #bf = BorrowForm(request.GET)
+    if 'borrow_message' in request.GET:
+        key= request.GET['borrow_message']
+        if key:
+            #bm = bf.cleaned_data['borrow_message']
+            return_list = ReturnManagement.objects.filter(Q(formNum_de__icontains=key) | Q(operator_re__icontains=key))
+            return_list = return_list.values()
             ele = {}
-            ele['head'] = return_list
-            if return_list:
-                return render(request,'return.html',ele)
+            #result_dict = model_to_dict(return_list)
+            #result = return_list.values_list()
+            a = len(return_list)
+            i = 0
+            if i < a:
+                ele['单号'] = return_list[i]['formNum_de']
+                ele['借出人'] = return_list[i]['operator_re']
+                ele['借出日期'] = return_list[i]['deliveryDate']
+                i = i + 1
+                if ele:
+                    return render(request,'return.html',ele)
+                else:
+                    return render(request, 'return.html')
             else:
-                return render(request,'return.html',{'head':'No result.'})
+                return render(request,'return.html',ele)
 
         else:
             render(request, 'error.html')
